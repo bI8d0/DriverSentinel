@@ -3,12 +3,13 @@
 package main
 
 import (
-	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"runtime"
 
 	"DriverSentinel/repository"
+	"DriverSentinel/scan"
 )
 
 func main() {
@@ -17,21 +18,46 @@ func main() {
 		log.Fatalf("DriverSentinel only supports Windows (current OS: %s)", runtime.GOOS)
 	}
 
+	// Define command line flags
+	scanPath := flag.String("path", "", "Path of directory to scan")
+	recursive := flag.Bool("r", false, "Scan recursively")
+	scanCommon := flag.Bool("common", false, "Scan common Windows driver locations (Admin only)")
+	flag.Parse()
+
+	// Initialize vulnerable drivers repository
+	fmt.Println("\n=== DriverSentinel - Vulnerable Driver Scanner ===\n")
+
 	repo, err := repository.NewDriverRepository()
 	if err != nil {
 		log.Fatalf("Failed to initialize repository: %v", err)
 	}
 
-	fmt.Printf("Total drivers loaded: %d\n", len(repo.Drivers))
+	fmt.Printf("Total drivers loaded: %d\n\n", len(repo.Drivers))
 
-	driver := repo.Drivers[0]
-	fmt.Println(driver.ID)
-	fmt.Println(driver.Category)
+	// Create the scanner
+	scanner := scan.NewScanner(repo)
 
-	// Access a new or future field from the JSON → stored in Extra
-	if raw, ok := driver.Extra["NewField"]; ok {
-		var val any
-		_ = json.Unmarshal(raw, &val)
-		fmt.Println(val)
+	// Determine what to scan
+	if *scanCommon {
+		// Scan common driver locations
+		if err := scanner.ScanCommonDriverPaths(); err != nil {
+			log.Fatalf("Error scanning common locations: %v", err)
+		}
+	} else if *scanPath != "" {
+		// Scan specified path
+		if err := scanner.ScanDirectory(*scanPath, *recursive); err != nil {
+			log.Fatalf("Error scanning directory: %v", err)
+		}
+	} else {
+		// Show usage
+		fmt.Println("Usage:")
+		fmt.Println("  driversentinel.exe -common                      # Scan common Windows locations (Admin only)")
+		fmt.Println("  driversentinel.exe -path C:\\Path                # Scan specific directory")
+		fmt.Println("  driversentinel.exe -path C:\\Path -r             # Scan recursively")
+		fmt.Println()
+		return
 	}
+
+	// Print results
+	scanner.PrintResults()
 }
