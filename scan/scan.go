@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gosuri/uilive"
+
 	"DriverSentinel/repository"
 )
 
@@ -42,6 +44,7 @@ type Scanner struct {
 	resultsMutex   sync.Mutex
 	scannedFiles   int
 	scannedFilesMu sync.Mutex
+	writer         *uilive.Writer
 }
 
 type vulnerableEntry struct {
@@ -58,6 +61,7 @@ func NewScanner(repo *repository.DriverRepository) *Scanner {
 		hashIndex:     make(map[string][]vulnerableEntry),
 		filenameIndex: make(map[string][]vulnerableEntry),
 		results:       make([]ScanResult, 0),
+		writer:        uilive.New(),
 	}
 
 	// Build indices for fast search
@@ -101,6 +105,10 @@ func (s *Scanner) ScanDirectory(rootPath string, recursive bool) error {
 	startTime := time.Now()
 	fmt.Printf("[scanner] Starting scan of: %s\n", rootPath)
 
+	// Start live writer for real-time updates
+	s.writer.Start()
+	defer s.writer.Stop()
+
 	if recursive {
 		err := filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -142,7 +150,6 @@ func (s *Scanner) ScanDirectory(rootPath string, recursive bool) error {
 	}
 
 	duration := time.Since(startTime)
-	fmt.Printf("\r%s\r", strings.Repeat(" ", 150)) // Clear progress line
 	fmt.Printf("[scanner] Scan completed in %v\n", duration)
 	fmt.Printf("[scanner] Files scanned: %d\n", s.scannedFiles)
 	fmt.Printf("[scanner] Vulnerabilities found: %d\n", len(s.results))
@@ -163,8 +170,8 @@ func (s *Scanner) ScanFile(filePath string) error {
 func (s *Scanner) scanFile(filePath string) error {
 	s.incrementScannedFiles()
 
-	// Show file being scanned (clear line completely first)
-	fmt.Printf("\r%s\r[scanner] Scanning: %s", strings.Repeat(" ", 120), filePath)
+	// Show file being scanned using live writer (updates in place)
+	fmt.Fprintf(s.writer, "[scanner] Scanning (%d files): %s\n", s.scannedFiles, filePath)
 
 	// Get base filename
 	basename := filepath.Base(filePath)
@@ -214,8 +221,8 @@ func (s *Scanner) scanFile(filePath string) error {
 			}
 
 			if shouldReport {
-				// Clear progress line and show detection
-				fmt.Printf("\r%s\r", strings.Repeat(" ", 120))
+				// Show detection using uilive Newline for proper line management
+				s.writer.Newline()
 				fmt.Printf("⚠ DETECTED: %s (Type: %s, Category: %s)\n",
 					filePath, matchType, entry.category)
 
@@ -262,8 +269,8 @@ func (s *Scanner) scanFile(filePath string) error {
 			}
 
 			if shouldReport {
-				// Clear progress line and show detection
-				fmt.Printf("\r%s\r", strings.Repeat(" ", 120))
+				// Show detection (uilive handles the line management)
+				s.writer.Newline()
 				fmt.Printf("⚠ DETECTED: %s (Type: sha256, Category: %s)\n",
 					filePath, entry.category)
 
@@ -418,7 +425,7 @@ func (s *Scanner) ScanCommonDriverPaths() error {
 
 	for _, path := range commonPaths {
 		if _, err := os.Stat(path); err == nil {
-			fmt.Printf("[scanner] Scanning: %s\n", path)
+			fmt.Printf("\n[scanner] Scanning location: %s\n", path)
 			if err := s.ScanDirectory(path, true); err != nil {
 				fmt.Printf("[scanner] Error in %s: %v\n", path, err)
 			}
