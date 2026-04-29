@@ -352,7 +352,7 @@ func (s *Scanner) PrintResults() {
 		return
 	}
 
-	fmt.Printf("\n⚠ ALERT: Found %d vulnerable driver(s)\n", len(results))
+	fmt.Printf("\n\n⚠ ALERT: Found %d vulnerable driver(s)\n", len(results))
 	fmt.Println(strings.Repeat("=", 80))
 
 	for i, result := range results {
