@@ -27,7 +27,6 @@
 - [Detection Examples](#-detection-examples)
 - [Building from Source](#-building-from-source)
 - [Detection Logic](#-detection-logic)
-- [Contributing](#-contributing)
 - [License](#-license)
 - [Credits](#-credits)
 
