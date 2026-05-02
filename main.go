@@ -25,7 +25,7 @@ func main() {
 	flag.Parse()
 
 	// Initialize vulnerable drivers repository
-	fmt.Println("\n=== DriverSentinel - Vulnerable Driver Scanner by bI8d0 ===\n")
+	fmt.Println("\n=== DriverSentinel v1.0 - Vulnerable Driver Scanner by bI8d0 ===\n")
 
 	repo, err := repository.NewDriverRepository()
 	if err != nil {
