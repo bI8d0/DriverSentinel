@@ -179,6 +179,7 @@ Total drivers loaded: 1337
 [scanner] Files scanned: 523
 [scanner] Vulnerabilities found: 1
 
+
 ⚠ ALERT: Found 1 vulnerable driver(s)
 ================================================================================
 
@@ -206,6 +207,35 @@ Total drivers loaded: 1337
     Description:  Known exploit method
     Command:      sc.exe create vuln binPath= ...
     Resources:    https://example.com/advisory
+
+================================================================================
+
+⚡ REMEDIATION GUIDE (Requires Administrator)
+================================================================================
+
+Generic commands to remove detected vulnerable drivers:
+
+1. Stop the driver/service (if running):
+   sc.exe stop <service_name>
+
+2. Disable the driver/service:
+   sc.exe config <service_name> start= disabled
+
+3. Delete the service:
+   sc.exe delete <service_name>
+
+4. Backup and delete the file:
+   move "C:\Path\To\driver.sys" "C:\Path\To\driver.sys.malz"
+
+5. Or delete directly (use with caution):
+   del /F "C:\Path\To\driver.sys"
+
+⚠ WARNING:
+   - Removing system drivers may cause system instability or prevent boot.
+   - Always create a System Restore Point before taking action.
+   - Replace <service_name> with the actual service name (use 'sc.exe query' to find it).
+   - Use the full path from the detection results above.
+
 ================================================================================
 ```
 

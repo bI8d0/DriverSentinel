@@ -403,6 +403,35 @@ func (s *Scanner) PrintResults() {
 		}
 	}
 
+	// Show remediation commands cheat sheet (only once, after all detections)
+	fmt.Println()
+	fmt.Println(strings.Repeat("=", 80))
+	fmt.Printf("\n⚡ REMEDIATION GUIDE (Requires Administrator)\n")
+	fmt.Println(strings.Repeat("=", 80))
+	fmt.Println()
+	fmt.Printf("Generic commands to remove detected vulnerable drivers:\n")
+	fmt.Println()
+	fmt.Printf("1. Stop the driver/service (if running):\n")
+	fmt.Printf("   sc.exe stop <service_name>\n")
+	fmt.Println()
+	fmt.Printf("2. Disable the driver/service:\n")
+	fmt.Printf("   sc.exe config <service_name> start= disabled\n")
+	fmt.Println()
+	fmt.Printf("3. Delete the service:\n")
+	fmt.Printf("   sc.exe delete <service_name>\n")
+	fmt.Println()
+	fmt.Printf("4. Backup and delete the file:\n")
+	fmt.Printf("   move \"C:\\Path\\To\\driver.sys\" \"C:\\Path\\To\\driver.sys.malz\"\n")
+	fmt.Println()
+	fmt.Printf("5. Or delete directly (use with caution):\n")
+	fmt.Printf("   del /F \"C:\\Path\\To\\driver.sys\"\n")
+	fmt.Println()
+	fmt.Printf("⚠ WARNING:\n")
+	fmt.Printf("   - Removing system drivers may cause system instability or prevent boot.\n")
+	fmt.Printf("   - Always create a System Restore Point before taking action.\n")
+	fmt.Printf("   - Replace <service_name> with the actual service name (use 'sc.exe query' to find it).\n")
+	fmt.Printf("   - Use the full path from the detection results above.\n")
+
 	fmt.Println(strings.Repeat("=", 80))
 }
 
